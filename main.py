@@ -13,6 +13,7 @@ from PyQt5.QtWidgets import QMessageBox
 con = sqlite3.connect("emp.db")
 cur = con.cursor()
 defaultImage = "person.png"
+currentImage = ""
 person_id = None
 class Main(QWidget):
     def __init__(self):
@@ -205,7 +206,7 @@ class UpdateWindow(QWidget):
         surname = self.surnameEntry.text()
         phone = self.phoneEntry.text()
         email = self.emailEntry.text()
-        img = defaultImage
+        img = currentImage
         address = self.adressEditor.toPlainText()
         if (name and surname and phone != ""):
             try:
@@ -221,16 +222,16 @@ class UpdateWindow(QWidget):
             QMessageBox.information(self, "Warning", "Fields can'nt ne empty")
 
     def uploadim(self):
-        global defaultImage
+        global currentImage
         size = (128, 128)
         self.fileName, ok = QFileDialog.getOpenFileName(self, "Upload Image", '', 'Image Files (*.jpg *.png)' )
         print(self.fileName)
         if ok:
-            defaultImage = os.path.basename(self.fileName)
+            currentImage = os.path.basename(self.fileName)
             img = Image.open(self.fileName)
             img = img.resize(size)
-            img.save("images/{}".format(defaultImage))
-            self.img.setPixmap(QPixmap("images/{}".format(defaultImage)))
+            img.save("images/{}".format(currentImage))
+            self.img.setPixmap(QPixmap("images/{}".format(currentImage)))
 
 class AddEmployee(QWidget):
     def __init__(self):
@@ -240,6 +241,7 @@ class AddEmployee(QWidget):
         self.setGeometry(450, 150, 350, 600)
         self.UI()
         self.show()
+        self.check = False
     def closeEvent(self, event):
         self.main = Main()
     def UI(self):
@@ -299,11 +301,15 @@ class AddEmployee(QWidget):
         self.adreslbl = QLabel("Adress :")
     def addEmp(self):
         global defaultImage
+        global currentImage
         name = self.nameEntry.text()
         surname = self.surnameEntry.text()
         phone = self.phoneEntry.text()
         email = self.emailEntry.text()
-        img = defaultImage
+        if(self.check):
+            img = currentImage
+        else:
+            img = defaultImage
         adress = self.adressEditor.toPlainText()
         if (name and surname and phone != ""):
             try:
@@ -319,16 +325,18 @@ class AddEmployee(QWidget):
             QMessageBox.information(self, "Warning", "Fields can'nt ne empty")
 
     def uploadim(self):
-        global defaultImage
+        global currentImage
         size = (128, 128)
         self.fileName, ok = QFileDialog.getOpenFileName(self, "Upload Image", '', 'Image Files (*.jpg *.png)' )
-        print(self.fileName)
+        #print(self.fileName)
         if ok:
-            defaultImage = os.path.basename(self.fileName)
+            print(self.fileName)
+            self.check = True
+            currentImage = os.path.basename(self.fileName)
             img = Image.open(self.fileName)
             img = img.resize(size)
-            img.save("images/{}".format(defaultImage))
-            self.img.setPixmap(QPixmap("images/{}".format(defaultImage)))
+            img.save("images/{}".format(currentImage))
+            self.img.setPixmap(QPixmap("images/{}".format(currentImage)))
 def main():
     app = QApplication(sys.argv)
     window = Main()
