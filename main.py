@@ -5,7 +5,10 @@ Emirhan Yılmaz
 import sys, os
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QPixmap
+from PyQt5.QtGui import QRegExpValidator
 from PyQt5.QtCore import Qt
+from PyQt5.QtCore import QRegExp
+
 import sqlite3
 from PIL import Image
 from PyQt5.QtWidgets import QMessageBox
@@ -170,6 +173,15 @@ class UpdateWindow(QWidget):
         self.setLayout(self.main)
 
     def mainDesign(self):
+        regex = QRegExp("[a-z-A-Z_]+")
+        validator = QRegExpValidator(regex)
+
+        regexInt = QRegExp("[0-9_]+")
+        validatorInt = QRegExpValidator(regexInt)
+
+        regexEmail = QRegExp("\\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,4}\\b", Qt.CaseInsensitive)
+        validatorEmail = QRegExpValidator(regexEmail)
+       
         # Top layout widgets
         self.title = QLabel("Update Person")
         self.title.setStyleSheet('font-size:24pt;font-family:Arial Bold')
@@ -179,15 +191,23 @@ class UpdateWindow(QWidget):
         self.name = QLabel("Name :")
         self.nameEntry = QLineEdit()
         self.nameEntry.setText(self.namee)
+        self.nameEntry.setValidator(validator)
+        self.nameEntry.setMaxLength(30)
         self.surname = QLabel("Surname :")
         self.surnameEntry = QLineEdit()
         self.surnameEntry.setText(self.surnamee)
+        self.surnameEntry.setValidator(validator)
+        self.surnameEntry.setMaxLength(30)
         self.phone = QLabel("Phone :")
         self.phoneEntry = QLineEdit()
         self.phoneEntry.setText(self.phonee)
+        self.phoneEntry.setValidator(validatorInt)
+        self.phoneEntry.setMaxLength(11)
         self.email = QLabel("Email :")
         self.emailEntry = QLineEdit()
         self.emailEntry.setText(self.emaill)
+        self.emailEntry.setMaxLength(20)
+        self.emailEntry.setValidator(validatorEmail)
         self.imglbl = QLabel("Picture :")
         self.imgbtn = QPushButton("Browse")
         self.imgbtn.setStyleSheet("background-color:orange;font-size:10pt")
@@ -202,13 +222,20 @@ class UpdateWindow(QWidget):
     def updatePer(self):
         global defaultImage
         global person_id
+        check = True
         name = self.nameEntry.text()
         surname = self.surnameEntry.text()
         phone = self.phoneEntry.text()
         email = self.emailEntry.text()
         img = currentImage
         address = self.adressEditor.toPlainText()
-        if (name and surname and phone != ""):
+        if(self.emailEntry.hasAcceptableInput() == False):
+            self.emailEntry.setStyleSheet("QLineEdit { color: red;}")
+            check = False
+        if(len(phone) < 11):
+            self.phoneEntry.setStyleSheet("QLineEdit { color: red;}")
+            check = False
+        if (name and surname and phone != "" and check):
             try:
                 query = "UPDATE emp set name=?,surname=?,phone=?,email=?,img=?,adress=? WHERE id=?"
                 cur.execute(query, (name, surname, phone, email, img, address, person_id))
@@ -218,8 +245,10 @@ class UpdateWindow(QWidget):
                 self.main = Main()
             except:
                 QMessageBox.information(self, "Warning!", "Person has not been updated")
+        elif(check == False):
+            QMessageBox.information(self, "Warning", "Person has not been updated")
         else:
-            QMessageBox.information(self, "Warning", "Fields can'nt ne empty")
+            QMessageBox.information(self, "Warning", "Fields can not ne empty")
 
     def uploadim(self):
         global currentImage
@@ -271,6 +300,15 @@ class AddEmployee(QWidget):
         # setting main layout for window
         self.setLayout(self.main)
     def mainDesign(self):
+        regex = QRegExp("[a-z-A-Z_]+")
+        validator = QRegExpValidator(regex)
+
+        regexInt = QRegExp("[0-9_]+")
+        validatorInt = QRegExpValidator(regexInt)
+
+        regexEmail = QRegExp("\\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,4}\\b", Qt.CaseInsensitive)
+        validatorEmail = QRegExpValidator(regexEmail)
+
         # Top layout widgets
         self.title = QLabel("Add Person")
         self.title.setStyleSheet('font-size:24pt;font-family:Arial Bold')
@@ -280,15 +318,23 @@ class AddEmployee(QWidget):
         self.name = QLabel("Name :")
         self.nameEntry = QLineEdit()
         self.nameEntry.setPlaceholderText("Enter Employee Name")
+        self.nameEntry.setValidator(validator)
+        self.nameEntry.setMaxLength(30)
         self.surname = QLabel("Surname :")
         self.surnameEntry = QLineEdit()
         self.surnameEntry.setPlaceholderText("Enter Employee Surname")
+        self.surnameEntry.setValidator(validator)
+        self.surnameEntry.setMaxLength(30)
         self.phone = QLabel("Phone :")
         self.phoneEntry = QLineEdit()
         self.phoneEntry.setPlaceholderText("Enter Employee Phone Number")
+        self.phoneEntry.setValidator(validatorInt)
+        self.phoneEntry.setMaxLength(11)
         self.email = QLabel("Email :")
         self.emailEntry = QLineEdit()
         self.emailEntry.setPlaceholderText("Enter Employee Email Adress")
+        self.emailEntry.setMaxLength(20)
+        self.emailEntry.setValidator(validatorEmail)
         self.imglbl = QLabel("Picture :")
         self.imgbtn = QPushButton("Browse")
         self.imgbtn.clicked.connect(self.uploadim)
@@ -306,12 +352,19 @@ class AddEmployee(QWidget):
         surname = self.surnameEntry.text()
         phone = self.phoneEntry.text()
         email = self.emailEntry.text()
+        check = True
         if(self.check):
             img = currentImage
         else:
             img = defaultImage
         adress = self.adressEditor.toPlainText()
-        if (name and surname and phone != ""):
+        if(self.emailEntry.hasAcceptableInput() == False):
+            self.emailEntry.setStyleSheet("QLineEdit { color: red;}")
+            check = False
+        if(len(phone) < 11):
+            self.phoneEntry.setStyleSheet("QLineEdit { color: red;}")
+            check = False
+        if (name and surname and phone != "" and check):
             try:
                 query = "INSERT INTO emp (name,surname,phone,email,img,adress) VALUES(?,?,?,?,?,?)"
                 cur.execute(query, (name,surname,phone,email,img,adress))
@@ -321,8 +374,12 @@ class AddEmployee(QWidget):
                 self.main = Main()
             except:
                 QMessageBox.information(self, "Warning!", "Person has not been added")
+        elif(name and surname and phone != "" and check == False):
+            QMessageBox.information(self, "Warning", "Person has not been added")
         else:
-            QMessageBox.information(self, "Warning", "Fields can'nt ne empty")
+            self.nameEntry.setStyleSheet("QLineEdit { color: red;}")
+            self.surnameEntry.setStyleSheet("QLineEdit { color: red;}")
+            QMessageBox.information(self, "Warning", "Fields can not be empty")
 
     def uploadim(self):
         global currentImage
